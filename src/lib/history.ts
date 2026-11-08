@@ -1,28 +1,48 @@
-import type { HistoryItem, UserPreference } from '../types'
-
+import { inferDomains } from '../data/lexicon'
+import type { HistoryItem, SpellingPattern, PatternKind, UserPreference } from '../types'
 const HISTORY_KEY = 'fuzzy-word-finder-history'
-
 export function readLocalHistory(): HistoryItem[] {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]') as HistoryItem[] } catch { return [] }
+  try {
+    const data: unknown = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]')
+    return Array.isArray(data) ? data.filter((item): item is HistoryItem => item && typeof item.query === 'string' && typeof item.selectedTerm === 'string' && typeof item.id === 'string' && typeof item.createdAt === 'string').slice(0, 200) : []
+  } catch { return [] }
 }
-
 export function addLocalHistory(item: Omit<HistoryItem, 'id' | 'createdAt'>): HistoryItem {
-  const next = { ...item, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
-  localStorage.setItem(HISTORY_KEY, JSON.stringify([next, ...readLocalHistory()].slice(0, 50)))
+  const next = { ...item, confirmed: true, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
+  localStorage.setItem(HISTORY_KEY, JSON.stringify([next, ...readLocalHistory()].slice(0, 200)))
   return next
 }
-
 export function clearLocalHistory(): void { localStorage.removeItem(HISTORY_KEY) }
-
 export function removeLocalHistory(id: string): HistoryItem[] {
-  const next = readLocalHistory().filter((item) => item.id !== id)
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(next))
-  return next
+  const next = readLocalHistory().filter(item => item.id !== id)
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(next)); return next
 }
-
-export function preferencesFromHistory(items: HistoryItem[]): UserPreference {
-  return {
-    selectedTerms: [...new Set(items.map((item) => item.selectedTerm))],
-    domains: [...new Set(items.map((item) => item.domain).filter((value): value is string => Boolean(value)))],
+export function spellingChanges(query: string, target: string): Omit<SpellingPattern, 'count'>[] {
+  const a = query.toLowerCase().replace(/[^a-z]/g, ''), b = target.toLowerCase().replace(/[^a-z]/g, '')
+  if (a.length > 80 || b.length > 80) return []
+  const matrix = Array.from({ length: a.length + 1 }, (_, i) => Array.from({ length: b.length + 1 }, (_, j) => i ? j ? 0 : i : j))
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + Number(a[i - 1] !== b[j - 1]))
+  const result: Omit<SpellingPattern, 'count'>[] = []
+  let i = a.length, j = b.length
+  while (i || j) {
+    if (i && j && a[i - 1] === b[j - 1]) { i--; j-- }
+    else if (i && j && matrix[i][j] === matrix[i - 1][j - 1] + 1) result.push({ kind: /[aeiouy]/.test(a[i - 1]) && /[aeiouy]/.test(b[j - 1]) ? 'vowel' : 'consonant', from: a[--i], to: b[--j] })
+    else if (i && matrix[i][j] === matrix[i - 1][j] + 1) result.push({ kind: 'extra', from: a[--i], to: '' })
+    else result.push({ kind: 'missing', from: '', to: b[--j] })
   }
+  return result.reverse()
+}
+export const PATTERN_LABEL: Record<PatternKind, string> = { vowel: '元音字母混淆', consonant: '辅音／其他字母混淆', extra: '多写字母', missing: '漏写字母' }
+export function preferencesFromHistory(items: HistoryItem[]): UserPreference {
+  const patterns = new Map<string, SpellingPattern>(), domainCounts: Record<string, number> = {}
+  const confirmed = items.filter(item => item.confirmed === true)
+  for (const item of confirmed) {
+    for (const change of spellingChanges(item.query, item.selectedTerm)) {
+      const key = `${change.kind}:${change.from}:${change.to}`
+      patterns.set(key, { ...change, count: (patterns.get(key)?.count ?? 0) + 1 })
+    }
+    const domains = new Set([...(item.domains ?? inferDomains(item.selectedTerm)), ...(item.domain && item.domain !== 'general' ? [item.domain] : [])])
+    for (const domain of domains) domainCounts[domain] = (domainCounts[domain] ?? 0) + 1
+  }
+  return { selectedTerms: [...new Set(confirmed.map(item => item.selectedTerm))].slice(0, 30), domains: Object.keys(domainCounts), domainCounts, patterns: [...patterns.values()].sort((a, b) => b.count - a.count).slice(0, 30) }
 }

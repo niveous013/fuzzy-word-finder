@@ -6,6 +6,11 @@ export interface SearchInput {
   context?: string
   domain?: string
   preferences?: UserPreference
+  pronunciation?: string
+  feedback?: ('vowel' | 'consonant' | 'stress' | 'syllable')[]
+  offset?: number
+  limit?: number
+  exclude?: string[]
 }
 
 export interface Candidate {
@@ -14,12 +19,21 @@ export interface Candidate {
   reasons: string[]
   isPhrase: boolean
   domains: string[]
+  phonetic?: string
+  source?: 'local' | 'llm'
 }
 
 export interface UserPreference {
   selectedTerms: string[]
   domains: string[]
+  patterns?: SpellingPattern[]
+  domainCounts?: Record<string, number>
 }
+
+export type PatternKind = 'vowel' | 'consonant' | 'extra' | 'missing'
+export interface SpellingPattern { kind: PatternKind; from: string; to: string; count: number }
+export interface PronunciationGuess { ipa: string; phones: string[]; source: 'dictionary' | 'rules' | 'user' }
+export interface SearchResult { candidates: Candidate[]; total: number; hasMore: boolean; pronunciation: PronunciationGuess }
 
 export interface DictionaryMeaning {
   partOfSpeech: string
@@ -42,4 +56,6 @@ export interface HistoryItem {
   selectedTerm: string
   domain?: string
   createdAt: string
+  domains?: string[]
+  confirmed?: boolean
 }

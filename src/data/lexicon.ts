@@ -4,6 +4,19 @@ export interface LexiconItem {
   domains: string[]
 }
 
+export const DOMAIN_LABEL: Record<string, string> = { general: '日常', technology: '科技', business: '商务', education: '教育', health: '健康', science: '科学', travel: '旅行' }
+const DOMAIN_TERMS: Record<string, string[]> = {
+  technology: ['algorithm', 'program', 'code', 'server', 'database', 'browser', 'network', 'application', 'interface', 'function', 'variable', 'debug', 'compile', 'deploy'],
+  health: ['breathe', 'breath', 'breathing', 'respiration', 'lung', 'lungs', 'patient', 'hospital', 'doctor', 'disease', 'treatment', 'symptom', 'therapy', 'surgery', 'medical'],
+  science: ['experiment', 'research', 'physics', 'biology', 'chemistry', 'neuron', 'synapse', 'neurology', 'hypothesis', 'molecule', 'energy', 'gravity'],
+  business: ['profit', 'revenue', 'budget', 'finance', 'market', 'stock', 'company', 'investment', 'contract', 'meeting'],
+  education: ['student', 'teacher', 'school', 'lesson', 'lecture', 'university', 'course', 'psychology', 'phonetic'],
+  travel: ['airport', 'flight', 'hotel', 'ticket', 'passport', 'journey', 'destination', 'tourism', 'luggage'],
+}
+export function inferDomains(term: string): string[] {
+  return [...new Set([...(LEXICON.find(entry => entry.term === term)?.domains ?? []), ...Object.entries(DOMAIN_TERMS).filter(([, words]) => words.includes(term)).map(([domain]) => domain)])].filter(domain => domain !== 'general')
+}
+
 // 第一版刻意保持词表小而可读；后续可替换成有授权的大词表。
 export const LEXICON: LexiconItem[] = [
   ['about', 100, ['general']], ['accept', 76, ['general']], ['access', 80, ['technology']],

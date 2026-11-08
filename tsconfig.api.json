@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": { "types": ["node"], "noUnusedLocals": true },
+  "include": ["api", "src/lib", "src/data", "src/types.ts"],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx"]
+}

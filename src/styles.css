@@ -1,4 +1,18 @@
 :root { font-family: Inter, "Microsoft YaHei", system-ui, sans-serif; color: #17221d; background: #f7f5ef; font-synthesis: none; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.ai-toggle { display: flex; align-items: center; gap: .6rem; margin-top: 1.2rem; }
+.ai-toggle input { width: 1.1rem; height: 1.1rem; margin: 0; }
+.method-note { color: #526058; margin-top: 1.2rem; font-size: .85rem; line-height: 1.7; }
+summary { cursor: pointer; }
+.pronunciation, .feedback, .learning { margin-top: 1.5rem; }
+.ipa { font-family: "Segoe UI", sans-serif; font-size: 1.6rem; color: #1d624f; overflow-wrap: anywhere; }
+.result-actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-top: 1.2rem; }
+.feedback form { margin-top: 1rem; }.feedback form > button { margin-top: 1rem; }
+.learning-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+.learning-grid h3 { font-size: .95rem; }.learning-grid ul { padding: 0; list-style: none; }
+.learning-grid li { display: flex; justify-content: space-between; gap: .6rem; margin: .5rem 0; }
+.domain-bars > div { display: grid; grid-template-columns: 4rem 1fr 3rem; gap: .8rem; align-items: center; margin: .6rem 0; }
+meter { width: 100%; }.confirm-word { margin-top: 1rem; }.candidate-copy { min-width: 0; }.candidate-copy h3 { overflow-wrap: anywhere; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
 button, input, select { font: inherit; }
