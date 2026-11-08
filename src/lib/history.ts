@@ -17,6 +17,17 @@ export function removeLocalHistory(id: string): HistoryItem[] {
   const next = readLocalHistory().filter(item => item.id !== id)
   localStorage.setItem(HISTORY_KEY, JSON.stringify(next)); return next
 }
+const silentFinalE = new Set(['breathe', 'make', 'take', 'like', 'time', 'name', 'write', 'have', 'give', 'love', 'live', 'move', 'phone', 'drive', 'close', 'house', 'use', 'because', 'please'])
+function describeEdit(word: string, index: number, missing: boolean): string[] {
+  const letter = word[index]
+  let start = index, end = index
+  while (start > 0 && word[start - 1] === letter) start--
+  while (end < word.length - 1 && word[end + 1] === letter) end++
+  const details = [start === 0 ? '词首' : end === word.length - 1 ? '词尾' : '词中', /[aeiou]/.test(letter) ? '元音字母' : '辅音字母']
+  if (word[index - 1] === letter || word[index + 1] === letter) details.push('相邻重复字母')
+  if (missing && letter === 'e' && index === word.length - 1 && silentFinalE.has(word)) details.push('词尾 e 可能不发音')
+  return details
+}
 export function spellingChanges(query: string, target: string): Omit<SpellingPattern, 'count'>[] {
   const a = query.toLowerCase().replace(/[^a-z]/g, ''), b = target.toLowerCase().replace(/[^a-z]/g, '')
   if (a.length > 80 || b.length > 80) return []
@@ -27,8 +38,8 @@ export function spellingChanges(query: string, target: string): Omit<SpellingPat
   while (i || j) {
     if (i && j && a[i - 1] === b[j - 1]) { i--; j-- }
     else if (i && j && matrix[i][j] === matrix[i - 1][j - 1] + 1) result.push({ kind: /[aeiouy]/.test(a[i - 1]) && /[aeiouy]/.test(b[j - 1]) ? 'vowel' : 'consonant', from: a[--i], to: b[--j] })
-    else if (i && matrix[i][j] === matrix[i - 1][j] + 1) result.push({ kind: 'extra', from: a[--i], to: '' })
-    else result.push({ kind: 'missing', from: '', to: b[--j] })
+    else if (i && matrix[i][j] === matrix[i - 1][j] + 1) { i--; result.push({ kind: 'extra', from: a[i], to: '', details: describeEdit(a, i, false) }) }
+    else { j--; result.push({ kind: 'missing', from: '', to: b[j], details: describeEdit(b, j, true) }) }
   }
   return result.reverse()
 }
@@ -38,7 +49,7 @@ export function preferencesFromHistory(items: HistoryItem[]): UserPreference {
   const confirmed = items.filter(item => item.confirmed === true)
   for (const item of confirmed) {
     for (const change of spellingChanges(item.query, item.selectedTerm)) {
-      const key = `${change.kind}:${change.from}:${change.to}`
+      const key = `${change.kind}:${change.from}:${change.to}:${(change.details ?? []).join(',')}`
       patterns.set(key, { ...change, count: (patterns.get(key)?.count ?? 0) + 1 })
     }
     const domains = new Set([...(item.domains ?? inferDomains(item.selectedTerm)), ...(item.domain && item.domain !== 'general' ? [item.domain] : [])])

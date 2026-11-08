@@ -58,7 +58,9 @@ describe('候选排序', () => {
   })
   it('区分字母差异并在未选领域时归纳最终词的领域', () => {
     expect(spellingChanges('breeth', 'breathe')).toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'vowel' }), expect.objectContaining({ kind: 'missing' })]))
-    expect(spellingChanges('breathee', 'breathe')).toEqual([{ kind: 'extra', from: 'e', to: '' }])
+    expect(spellingChanges('breathee', 'breathe')).toEqual([expect.objectContaining({ kind: 'extra', from: 'e', to: '', details: expect.arrayContaining(['词尾', '元音字母', '相邻重复字母']) })])
+    expect(spellingChanges('breath', 'breathe')).toEqual([expect.objectContaining({ kind: 'missing', details: expect.arrayContaining(['词尾', '元音字母', '词尾 e 可能不发音']) })])
+    expect(spellingChanges('inteligence', 'intelligence')).toEqual([expect.objectContaining({ kind: 'missing', details: expect.arrayContaining(['词中', '辅音字母', '相邻重复字母']) })])
     const preferences = preferencesFromHistory([{ id: '1', query: 'breeth', selectedTerm: 'breathe', createdAt: '2026-01-01', confirmed: true }])
     expect(preferences.domainCounts?.health).toBe(1)
     expect(preferencesFromHistory([]).patterns).toEqual([])

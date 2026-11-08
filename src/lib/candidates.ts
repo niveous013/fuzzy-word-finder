@@ -65,7 +65,7 @@ export function searchCandidates(input: SearchInput): SearchResult {
     if (input.preferences?.patterns?.length) {
       const changes = spellingChanges(query, entry.term)
       score += Math.min(2, changes.reduce((bonus, change) => {
-        const pattern = input.preferences?.patterns?.find(item => item.kind === change.kind && item.from === change.from && item.to === change.to)
+        const pattern = input.preferences?.patterns?.find(item => item.kind === change.kind && item.from === change.from && item.to === change.to && (!item.details?.length || item.details.every(detail => change.details?.includes(detail))))
         return bonus + Math.log2(1 + (pattern?.count ?? 0)) * .4
       }, 0))
     }

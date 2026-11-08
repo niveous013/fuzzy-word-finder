@@ -11,6 +11,7 @@ summary { cursor: pointer; }
 .learning-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
 .learning-grid h3 { font-size: .95rem; }.learning-grid ul { padding: 0; list-style: none; }
 .learning-grid li { display: flex; justify-content: space-between; gap: .6rem; margin: .5rem 0; }
+.pattern-details { display: block; color: #68756c; line-height: 1.5; margin-top: .2rem; }
 .domain-bars > div { display: grid; grid-template-columns: 4rem 1fr 3rem; gap: .8rem; align-items: center; margin: .6rem 0; }
 meter { width: 100%; }.confirm-word { margin-top: 1rem; }.candidate-copy { min-width: 0; }.candidate-copy h3 { overflow-wrap: anywhere; }
 * { box-sizing: border-box; }

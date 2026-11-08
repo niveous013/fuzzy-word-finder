@@ -4,7 +4,7 @@ import type { Candidate, SearchInput, UserPreference } from '../src/types'
 
 function summarize(preferences?: UserPreference) {
   return {
-    patterns: preferences?.patterns?.slice(0, 20).map(item => ({ kind: String(item.kind).slice(0, 20), from: String(item.from).slice(0, 8), to: String(item.to).slice(0, 8), count: Math.min(200, Number(item.count) || 0) })),
+    patterns: preferences?.patterns?.slice(0, 20).map(item => ({ kind: String(item.kind).slice(0, 20), from: String(item.from).slice(0, 8), to: String(item.to).slice(0, 8), details: Array.isArray(item.details) ? item.details.filter(detail => typeof detail === 'string').slice(0, 4).map(detail => detail.slice(0, 30)) : [], count: Math.min(200, Number(item.count) || 0) })),
     domains: Object.entries(preferences?.domainCounts ?? {}).filter(([key]) => key in DOMAIN_LABEL).slice(0, 7).map(([domain, count]) => ({ domain, count: Math.min(200, Number(count) || 0) })),
   }
 }

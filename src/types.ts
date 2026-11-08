@@ -31,7 +31,7 @@ export interface UserPreference {
 }
 
 export type PatternKind = 'vowel' | 'consonant' | 'extra' | 'missing'
-export interface SpellingPattern { kind: PatternKind; from: string; to: string; count: number }
+export interface SpellingPattern { kind: PatternKind; from: string; to: string; count: number; details?: string[] }
 export interface PronunciationGuess { ipa: string; phones: string[]; source: 'dictionary' | 'rules' | 'user' }
 export interface SearchResult { candidates: Candidate[]; total: number; hasMore: boolean; pronunciation: PronunciationGuess }
 
